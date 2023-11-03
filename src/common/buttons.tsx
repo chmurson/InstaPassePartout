@@ -1,0 +1,15 @@
+import { Button, ButtonProps } from '@mui/material'
+import { FC } from 'react'
+
+export const PrimaryButton: FC<Omit<ButtonProps, 'variant'>> = (props) => <Button variant="contained" {...props} />
+
+export const SecondaryButton: FC<Omit<ButtonProps, 'variant'>> = (props) => (
+  <Button variant="outlined" color="secondary" {...props} />
+)
+
+export const TertiaryButton: FC<Omit<ButtonProps, 'variant'>> = ({ sx, ...restOfProps }) => (
+  <Button variant="text" color="secondary" sx={{ textTransform: 'none', ...(sx ?? {}) }} {...restOfProps} />
+)
+export const AlertButton: FC<Omit<ButtonProps, 'variant'>> = (props) => (
+  <Button variant="contained" color="error" {...props} />
+)
