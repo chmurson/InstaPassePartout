@@ -6,4 +6,5 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react(), svgr({ include: '**/*.svg?react' })],
   optimizeDeps: {},
+  base: 'InstaPassePartout',
 })
