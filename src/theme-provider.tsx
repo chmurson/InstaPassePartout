@@ -10,29 +10,15 @@ export const ThemeProvider: FC<PropsWithChildren> = ({ children }) => {
       createTheme({
         palette: {
           mode: prefersDarkMode ? 'dark' : 'light',
-          ...(prefersDarkMode
-            ? {}
-            : {
-                background: {
-                  default: !prefersDarkMode ? '#dcdcdc' : undefined,
-                },
-              }),
-          action: {
-            disabled: '#2a2a2a',
-            disabledBackground: '#2f2f2f',
-          },
           primary: {
-            main: '#808080',
+            main: prefersDarkMode ? '#78909c' : '#546e7a  ',
           },
           secondary: {
-            main: prefersDarkMode ? '#626262' : '#333333',
+            main: '#b0bec5',
           },
-          text: {
-            primary: prefersDarkMode ? '#dedede' : '#000000',
+          background: {
+            default: prefersDarkMode ? '#161616' : '#cfd8dc',
           },
-          // contrastText: 'red',
-          // dark: 'blue',
-          // light: 'yellow',
         },
       }),
     [prefersDarkMode],

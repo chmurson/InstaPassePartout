@@ -2,7 +2,17 @@ import { FC, FocusEventHandler, useEffect, useState } from 'react'
 import { useStorePersistedState } from '../common/use-store-persisted-state.ts'
 import { usePersistedState } from '../common/use-persisted-state.ts'
 import { Ratio } from '../main-types.ts'
-import { MenuItem, Select, SelectProps, FormControl, InputLabel, TextField, Stack, InputAdornment } from '@mui/material'
+import {
+  MenuItem,
+  Select,
+  SelectProps,
+  FormControl,
+  InputLabel,
+  TextField,
+  Stack,
+  InputAdornment,
+  Link,
+} from '@mui/material'
 import { Box } from '@mui/system'
 import { UploadedImage } from './uploaded-image'
 import { AlertButton, TertiaryButton } from '../common/buttons.tsx'
@@ -96,6 +106,7 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
 
       setImages((prevImages) => [...prevImages, { fileSrc: img.src, fileKey: img.src, sizes }])
       addFile(file, img.src)
+      console.log(img.src, file)
     }
 
     const objectURL = URL.createObjectURL(file)
@@ -105,9 +116,15 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
 
   return (
     <>
-      <TertiaryButton sx={{ p: 0 }} onClick={() => onBackToIntro()}>
+      <Link
+        color="inherit"
+        underline="hover"
+        variant="body2"
+        sx={{ cursor: 'pointer' }}
+        onClick={() => onBackToIntro()}
+      >
         👈 Back to introduction
-      </TertiaryButton>
+      </Link>
       <Box sx={{ display: 'flex', gap: '1em', textAlign: 'left', pt: 2 }}>
         <Stack spacing={2} direction="row">
           <FormControl variant="standard" sx={{ minWidth: 80 }}>
