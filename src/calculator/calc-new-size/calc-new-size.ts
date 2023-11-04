@@ -1,8 +1,18 @@
 import { Ratio } from '../../main-types.ts'
 import { ratioToRatioValue } from './ratio-to-ratio-value.ts'
 
-export function calcNewSize({ height, width }: { height: number; width: number }, ratio: Ratio, margin: number) {
-  const ratioValue = ratioToRatioValue[ratio]
+export function calcNewSize(
+  { height, width }: { height: number; width: number },
+  {
+    customRatioValue,
+    ratio,
+  }: {
+    ratio: Ratio
+    customRatioValue?: number
+  },
+  margin: number,
+) {
+  const ratioValue = ratio === 'custom' ? customRatioValue ?? 1 : ratioToRatioValue[ratio]
 
   if (width / height < ratioValue) {
     const newHeight = height * ((margin + 100) / 100)

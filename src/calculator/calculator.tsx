@@ -22,6 +22,8 @@ import { AreYouSureButton } from '../common/are-you-sure-button.tsx'
 import CloseIcon from '@mui/icons-material/Close'
 import { DropZone } from './drop-zone.tsx'
 import { useError } from '../common/use-error.ts'
+import { CustomRationValue } from './custom-ratio-value.tsx'
+import { parseFloatSafely } from '../common/parse-float-safely.ts'
 
 const ratioDefaultValue = '4_5'
 type Image = {
@@ -99,7 +101,7 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
 
   const { error, addError } = useError()
 
-  const handleFildeAdded = (file: File) => {
+  const handleFileAdded = (file: File) => {
     const img = new Image()
 
     img.onload = function () {
@@ -122,6 +124,9 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
     img.src = objectURL
   }
 
+  const [customRatioValue, setCustomRatioValue] = useState<number>()
+  console.log(customRatioValue)
+
   return (
     <>
       <Link
@@ -142,8 +147,10 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
               <MenuItem value="1_1">1:1 Square Photo</MenuItem>
               <MenuItem value="1.91_1">1.91:1 Landscape Photo</MenuItem>
               <MenuItem value="9_16">9:16 Instagram Stories</MenuItem>
+              <MenuItem value="custom">Custom</MenuItem>
             </Select>
           </FormControl>
+          {ratio === 'custom' && <CustomRationValue onChange={setCustomRatioValue} />}
           <FormControl variant="standard" sx={{ maxWidth: 80 }}>
             <TextField
               label="Margins size"
@@ -164,7 +171,7 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
         </Stack>
       </Box>
       <Box sx={{ my: 4 }}>
-        <DropZone onFileAdded={handleFildeAdded} />
+        <DropZone onFileAdded={handleFileAdded} />
       </Box>
       {error && (
         <Alert variant="outlined" severity="error">
@@ -191,19 +198,11 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
             key={image.fileSrc}
             src={image.fileSrc}
             size={image.sizes}
-            newSize={calcNewSize(image.sizes, ratio, margin)}
+            newSize={calcNewSize(image.sizes, { ratio, customRatioValue }, margin)}
             onRemove={() => handleRemoveSingleFile(image)}
           />
         ))}
       </Stack>
     </>
   )
-}
-
-function parseFloatSafely(maybeNumber: string) {
-  const result = parseFloat(maybeNumber)
-  if (!Number.isNaN(result)) {
-    return result
-  }
-  return 0
 }
