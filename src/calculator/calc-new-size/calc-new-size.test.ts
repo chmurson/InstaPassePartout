@@ -11,7 +11,7 @@ describe('calcNewSize', () => {
 
       describe.each([{ input: [50, 75], expected: [55, 97] }])(`Input size $input`, ({ input, expected }) => {
         it(`returns ${expected}`, () => {
-          const result = calcNewSize({ height: input[1], width: input[0] }, ratio, margin)
+          const result = calcNewSize({ height: input[1], width: input[0] }, { ratio }, margin)
           expect(result.width).toEqual(expected[0])
           expect(result.height).toEqual(expected[1])
         })
