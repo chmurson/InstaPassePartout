@@ -12,6 +12,7 @@ import {
   Stack,
   InputAdornment,
   Link,
+  Alert,
 } from '@mui/material'
 import { Box } from '@mui/system'
 import { UploadedImage } from './uploaded-image'
@@ -20,6 +21,7 @@ import { calcNewSize } from './calc-new-size'
 import { AreYouSureButton } from '../common/are-you-sure-button.tsx'
 import CloseIcon from '@mui/icons-material/Close'
 import { DropZone } from './drop-zone.tsx'
+import { useError } from '../common/use-error.ts'
 
 const ratioDefaultValue = '4_5'
 type Image = {
@@ -95,6 +97,8 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
     removeFile(image.fileKey)
   }
 
+  const { error, addError } = useError()
+
   const handleFildeAdded = (file: File) => {
     const img = new Image()
 
@@ -107,6 +111,10 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
       setImages((prevImages) => [...prevImages, { fileSrc: img.src, fileKey: img.src, sizes }])
       addFile(file, img.src)
       console.log(img.src, file)
+    }
+    img.onerror = function () {
+      removeFile(img.src)
+      addError(`Couldn't load ${file.name}`)
     }
 
     const objectURL = URL.createObjectURL(file)
@@ -158,6 +166,11 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
       <Box sx={{ my: 4 }}>
         <DropZone onFileAdded={handleFildeAdded} />
       </Box>
+      {error && (
+        <Alert variant="outlined" severity="error">
+          {error}
+        </Alert>
+      )}
       {images.length > 1 && (
         <AreYouSureButton
           firstBtn={({ onClick }) => (

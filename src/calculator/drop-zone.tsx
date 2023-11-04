@@ -48,6 +48,7 @@ export const DropZone: FC<Props> = ({ onFileAdded }) => {
       <input
         type="file"
         id="input"
+        accept="image/*"
         multiple
         onChange={function handleFileUpload(this: HTMLInputElement, e: ChangeEvent<HTMLInputElement>) {
           const input = e.currentTarget

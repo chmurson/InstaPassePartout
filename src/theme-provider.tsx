@@ -19,6 +19,12 @@ export const ThemeProvider: FC<PropsWithChildren> = ({ children }) => {
           background: {
             default: prefersDarkMode ? '#161616' : '#cfd8dc',
           },
+          text: {
+            primary: prefersDarkMode ? '#eeeeee' : '#424242',
+          },
+          error: {
+            main: '#b71c1c',
+          },
         },
       }),
     [prefersDarkMode],
