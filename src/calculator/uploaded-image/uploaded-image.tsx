@@ -36,29 +36,36 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const loadedImageRef = useRef<HTMLImageElement>()
   const canvasZoomRef = useRef<string>()
+  const [isImageLoaded, setIsImageLoaded] = useState(false)
 
   const drawImageOnCanvas = useCallback(() => {
     const marginX = (newSize.width - size.width) / 2
-    if (!canvasRef.current || !loadedImageRef.current) {
+    if (!canvasRef.current || !loadedImageRef.current || !isImageLoaded) {
       return
     }
     const ctx = canvasRef.current.getContext('2d')
     if (!ctx) {
+      console.error('CTX is null')
       return
     }
     const marginY = (newSize.height - size.height) / 2
 
-    const zoom = Math.min(imageMaxHeight / newSize.height, imageMaxWidth / newSize.width).toFixed(3)
-    canvasZoomRef.current = zoom
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    canvasRef.current.style.zoom = zoom
-    canvasRef.current.width = newSize.width
-    canvasRef.current.height = newSize.height
-    ctx.fillStyle = 'white'
-    ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height)
-    ctx.drawImage(loadedImageRef.current, marginX, marginY, size.width, size.height)
-  }, [newSize.height, newSize.width, size.height, size.width])
+    try {
+      console.log([newSize.height, newSize.width, size.height, size.width])
+      const zoom = Math.min(imageMaxHeight / newSize.height, imageMaxWidth / newSize.width).toFixed(3)
+      canvasZoomRef.current = zoom
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      canvasRef.current.style.zoom = zoom
+      canvasRef.current.width = newSize.width
+      canvasRef.current.height = newSize.height
+      ctx.fillStyle = 'white'
+      ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height)
+      ctx.drawImage(loadedImageRef.current, marginX, marginY, size.width, size.height)
+    } catch (e) {
+      console.error('error', e)
+    }
+  }, [newSize.height, newSize.width, size.height, size.width, isImageLoaded])
 
   useEffect(() => {
     drawImageOnCanvas()
@@ -66,7 +73,7 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
 
   function handleOnLoad(e: SyntheticEvent<HTMLImageElement>) {
     loadedImageRef.current = e.currentTarget
-    drawImageOnCanvas()
+    setIsImageLoaded(true)
   }
 
   const [downloading, setDownloading] = useState(false)
@@ -174,7 +181,7 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
               </TertiaryButton>
             )}
             secondBtn={() => (
-              <AlertButton onClick={onRemove} size="small" startIcon={<CloseIcon />}>
+              <AlertButton onClick={onRemove} size="small">
                 You sure ?
               </AlertButton>
             )}
