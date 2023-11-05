@@ -170,7 +170,7 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
           </FormControl>
         </Stack>
       </Box>
-      <Box sx={{ my: 4 }}>
+      <Box sx={{ mt: 4 }}>
         <DropZone onFileAdded={handleFileAdded} />
       </Box>
       {error && (
@@ -179,18 +179,20 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
         </Alert>
       )}
       {images.length > 1 && (
-        <AreYouSureButton
-          firstBtn={({ onClick }) => (
-            <TertiaryButton startIcon={<CloseIcon />} onClick={onClick} size="small">
-              Remove all
-            </TertiaryButton>
-          )}
-          secondBtn={() => (
-            <AlertButton onClick={() => images.forEach((x) => handleRemoveSingleFile(x))} size="small">
-              Are you sure ?
-            </AlertButton>
-          )}
-        />
+        <Box mt={2}>
+          <AreYouSureButton
+            firstBtn={({ onClick }) => (
+              <TertiaryButton startIcon={<CloseIcon />} onClick={onClick} size="small">
+                Remove all
+              </TertiaryButton>
+            )}
+            secondBtn={() => (
+              <AlertButton onClick={() => images.forEach((x) => handleRemoveSingleFile(x))} size="small">
+                Are you sure ?
+              </AlertButton>
+            )}
+          />
+        </Box>
       )}
       <Stack>
         {images.map((image) => (

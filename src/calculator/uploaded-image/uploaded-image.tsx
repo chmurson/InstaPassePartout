@@ -1,11 +1,23 @@
-import { FC, ImgHTMLAttributes, SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react'
+import {
+  CSSProperties,
+  FC,
+  ImgHTMLAttributes,
+  SyntheticEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { CircularProgress, Typography } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import DownloadIcon from '@mui/icons-material/Download'
+import PreviewIcon from '@mui/icons-material/Preview'
 import { AreYouSureButton } from '../../common/are-you-sure-button.tsx'
 import { AlertButton, SecondaryButton, TertiaryButton } from '../../common/buttons.tsx'
 import { imageMaxHeight, imageMaxWidth } from './consts.ts'
 import { UploadedImageLayout } from './uploaded-image-layout.tsx'
+import { Box } from '@mui/system'
 
 type Props = {
   src: string
@@ -23,6 +35,7 @@ type Props = {
 export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const loadedImageRef = useRef<HTMLImageElement>()
+  const canvasZoomRef = useRef<string>()
 
   const drawImageOnCanvas = useCallback(() => {
     const marginX = (newSize.width - size.width) / 2
@@ -35,9 +48,11 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
     }
     const marginY = (newSize.height - size.height) / 2
 
+    const zoom = Math.min(imageMaxHeight / newSize.height, imageMaxWidth / newSize.width).toFixed(3)
+    canvasZoomRef.current = zoom
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    canvasRef.current.style.zoom = Math.min(imageMaxHeight / newSize.height, imageMaxWidth / newSize.width).toFixed(3)
+    canvasRef.current.style.zoom = zoom
     canvasRef.current.width = newSize.width
     canvasRef.current.height = newSize.height
     ctx.fillStyle = 'white'
@@ -77,6 +92,46 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
     }, 125)
   }
 
+  const [isPreview, setIsPreview] = useState(false)
+  const previewStyleProps: CSSProperties = useMemo(() => {
+    if (!isPreview) {
+      return { zoom: canvasZoomRef.current }
+    }
+
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+    const canvas = canvasRef.current!
+    const canvasWidth = canvas.width
+    const canvasHeight = canvas.height
+    const zoomWidth = viewportWidth / canvasWidth
+    const zoomHeight = viewportHeight / canvasHeight
+    const zoomLevel = Math.min(zoomWidth, zoomHeight)
+    return {
+      zIndex: 2,
+      zoom: zoomLevel,
+      position: 'fixed',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+    } as CSSProperties
+  }, [isPreview])
+  const handleOnPreview = () => {
+    setIsPreview(true)
+  }
+
+  useEffect(() => {
+    const handler: (this: Document, ev: DocumentEventMap['keydown']) => void = (ev) => {
+      if (ev.key === 'Escape') {
+        setIsPreview(() => false)
+      }
+    }
+
+    document.addEventListener('keydown', handler, { capture: true })
+    return () => {
+      document.removeEventListener('keydown', handler, { capture: true })
+    }
+  }, [setIsPreview])
+
   return (
     <UploadedImageLayout
       firstImage={
@@ -89,7 +144,22 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
       }
       secondImage={
         <>
-          <canvas ref={canvasRef} />
+          <canvas ref={canvasRef} style={previewStyleProps} onClick={() => setIsPreview(false)} />
+          {isPreview && (
+            <Box
+              sx={{
+                position: 'fixed',
+                zIndex: 1,
+                top: 0,
+                right: 0,
+                width: '100vw',
+                height: '100vh',
+                backgroundColor: 'black',
+                opacity: 0.75,
+              }}
+              onClick={() => setIsPreview(false)}
+            />
+          )}
           <Typography variant="body2" sx={{ alignSelf: 'flex-end' }}>
             {printSize(newSize)}
           </Typography>
@@ -105,20 +175,20 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
             )}
             secondBtn={() => (
               <AlertButton onClick={onRemove} size="small" startIcon={<CloseIcon />}>
-                Are you sure ?
+                You sure ?
               </AlertButton>
             )}
           />
+          <SecondaryButton startIcon={<PreviewIcon />} size="small" onClick={handleOnPreview}>
+            Preview
+          </SecondaryButton>
           <SecondaryButton
             onClick={handleDownload}
-            startIcon={<DownloadIcon />}
-            endIcon={
-              <CircularProgress sx={{ visibility: downloading ? 'visible' : 'hidden' }} color="inherit" size={16} />
-            }
+            startIcon={downloading ? <CircularProgress color="inherit" size={13} /> : <DownloadIcon />}
             size="small"
             disabled={downloading}
           >
-            <Typography>Download</Typography>
+            <Typography variant="body2">Download</Typography>
           </SecondaryButton>
         </>
       }

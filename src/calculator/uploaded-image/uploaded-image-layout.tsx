@@ -27,14 +27,16 @@ export const UploadedImageLayout: FC<{
   return (
     <Grid2
       container
-      sx={{ display: 'flex', gap: 2, alignItems: 'flex-start', py: 3 }}
+      sx={{ py: 3 }}
       onMouseEnter={() => setIsHover(true)}
       onMouseLeave={() => setIsHover(false)}
+      spacing={2}
+      justifyContent={isXs ? 'space-between' : 'flex-start'}
     >
       <Grid2 xs={5} sm={4} sx={imageGridProps}>
         {firstImage}
       </Grid2>
-      <Grid2 xs={0} sm={1} sx={{ alignSelf: 'center', textAlign: 'center' }}>
+      <Grid2 xs={2} sm={1} sx={{ alignSelf: 'center', textAlign: 'center' }}>
         ▶
       </Grid2>
       <Grid2 xs={5} sm={4} sx={imageGridProps}>
@@ -46,11 +48,12 @@ export const UploadedImageLayout: FC<{
           display="flex"
           spacing={isXs ? 0 : 2}
           sx={{ maxWidth: isXs ? imageMaxWidth * 2.5 : `${180}px`, width: '100%' }}
-          justifyContent={isXs ? 'space-between' : 'center'}
+          justifyContent={isXs ? 'space-between' : 'flex-start'}
           alignItems={isXs ? 'center' : 'stretch'}
+          padding={isXs ? 0 : 2}
           alignSelf="stretch"
         >
-          {(isHover || isXs) && buttons}
+          {(isHover || isXs || true) && buttons}
         </Stack>
       </Grid2>
     </Grid2>
