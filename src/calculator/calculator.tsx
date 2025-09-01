@@ -144,7 +144,7 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
             <InputLabel>Ratio</InputLabel>
             <Select value={ratio} onChange={handleRatioChange}>
               <Typography variant="body2" sx={{ fontWeight: "bold", px: 1 }}>
-                Classic Rations:
+                Classic Ratios:
               </Typography>
               <MenuItem value="2_3">2:3 Portrait</MenuItem>
               <MenuItem value="3_2">3:2 Landscape</MenuItem>

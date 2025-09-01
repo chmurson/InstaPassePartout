@@ -75,7 +75,7 @@ export const UploadedImageLayout: FC<{
           padding={isXs ? 0 : 2}
           alignSelf="stretch"
         >
-          {(isHover || isXs || true) /* true beucuse of performance issues */ && buttons}
+          {(isHover || isXs) && buttons}
         </Stack>
       </Grid2>
     </Grid2>
