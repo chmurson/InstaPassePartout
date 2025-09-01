@@ -5,10 +5,10 @@ import { CircularProgress, Typography } from "@mui/material";
 import { type FC, type ImgHTMLAttributes, type SyntheticEvent, useEffect, useRef, useState } from "react";
 import { AreYouSureButton } from "../../common/are-you-sure-button.tsx";
 import { AlertButton, SecondaryButton, TertiaryButton } from "../../common/buttons.tsx";
+import { CanvasWithNewSizeThumbnail } from "./canvas-with-new-size-thumbnail.tsx";
 import { imageMaxHeight, imageMaxWidth } from "./consts.ts";
 import { FullSizeImagePreview } from "./full-size-image-preview.tsx";
 import { UploadedImageLayout } from "./uploaded-image-layout.tsx";
-import { drawImageOnCanvas } from "./utils/drawImageOnCanvas.ts";
 
 type Props = {
   src: string;
@@ -26,25 +26,7 @@ type Props = {
 export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const loadedImageRef = useRef<HTMLImageElement>();
-  const canvasZoomRef = useRef<string>();
-  const [isImageLoaded, setIsImageLoaded] = useState(false);
-
-  useEffect(() => {
-    if (!canvasRef.current || !loadedImageRef.current || !isImageLoaded) {
-      return;
-    }
-    drawImageOnCanvas(
-      loadedImageRef.current,
-      size,
-      canvasRef.current,
-      { width: imageMaxWidth, height: imageMaxHeight },
-      {
-        newSize,
-        type: "scale-to-canvas",
-      },
-    );
-    canvasZoomRef.current = canvasRef.current.style.zoom;
-  }, [isImageLoaded, newSize, size]);
+  const [_isImageLoaded, setIsImageLoaded] = useState(false);
 
   function handleOnLoad(e: SyntheticEvent<HTMLImageElement>) {
     loadedImageRef.current = e.currentTarget;
@@ -119,7 +101,14 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
       }
       secondImage={
         <>
-          <canvas ref={canvasRef} onClick={() => setIsPreview(false)} style={{ width: "100%" }} />
+          {
+            <CanvasWithNewSizeThumbnail
+              image={loadedImageRef.current}
+              isImageLoaded={true}
+              newSize={newSize}
+              size={size}
+            />
+          }
           {isPreview && loadedImageRef.current && (
             <FullSizeImagePreview
               image={loadedImageRef.current}
