@@ -54,59 +54,68 @@ export const useStorePersistedState = () => {
 
   const getAllFiles = useCallback(async (): Promise<{ key: IDBValidKey; value: unknown }[]> => {
     // eslint-disable-next-line no-async-promise-executor
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       if (!db.current) {
         console.error("Db is not defined");
         return;
       }
-      const dbInstance = await db.current;
-      const transaction = dbInstance.transaction(["files"], "readonly");
-      const objectStore = transaction.objectStore("files");
-      const request = objectStore.openCursor();
 
-      const result: { key: IDBValidKey; value: unknown }[] = [];
+      db.current.then(
+        (dbInstance) => {
+          const transaction = dbInstance.transaction(["files"], "readonly");
+          const objectStore = transaction.objectStore("files");
+          const request = objectStore.openCursor();
 
-      request.onsuccess = (event) => {
-        if (!event.target || !("result" in event.target)) {
-          reject("target is empty");
-          return;
-        }
+          const result: { key: IDBValidKey; value: unknown }[] = [];
 
-        const cursor = event.target.result as IDBCursorWithValue;
-        if (cursor) {
-          const key = cursor.primaryKey;
-          const value = cursor.value;
+          request.onsuccess = (event) => {
+            if (!event.target || !("result" in event.target)) {
+              reject("target is empty");
+              return;
+            }
 
-          result.push({ key, value });
+            const cursor = event.target.result as IDBCursorWithValue;
+            if (cursor) {
+              const key = cursor.primaryKey;
+              const value = cursor.value;
 
-          cursor.continue();
-        } else {
-          resolve(result);
-        }
-      };
+              result.push({ key, value });
 
-      request.onerror = createOnErrorHandler(reject);
+              cursor.continue();
+            } else {
+              resolve(result);
+            }
+          };
+
+          request.onerror = createOnErrorHandler(reject);
+        },
+        (error) => {
+          reject(error);
+        },
+      );
     });
   }, []);
 
   const removeFile = useCallback(async (key: string): Promise<void> => {
     // eslint-disable-next-line no-async-promise-executor
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       if (!db.current) {
         console.error("Db is not defined");
         return;
       }
-      const dbInstance = await db.current;
-      const transaction = dbInstance.transaction(["files"], "readwrite");
-      const objectStore = transaction.objectStore("files");
-      const request = objectStore.delete(key);
 
-      request.onsuccess = () => {
-        console.log("File removed successfully.");
-        resolve();
-      };
+      db.current.then((dbInstance) => {
+        const transaction = dbInstance.transaction(["files"], "readwrite");
+        const objectStore = transaction.objectStore("files");
+        const request = objectStore.delete(key);
 
-      request.onerror = createOnErrorHandler(reject);
+        request.onsuccess = () => {
+          console.log("File removed successfully.");
+          resolve();
+        };
+
+        request.onerror = createOnErrorHandler(reject);
+      });
     });
   }, []);
 

@@ -105,10 +105,14 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
       return { zoom: canvasZoomRef.current };
     }
 
+    if (!canvasRef.current) {
+      return {};
+    }
+
     const padding = 16;
     const viewportWidth = window.innerWidth - padding * 2;
     const viewportHeight = window.innerHeight - padding * 2;
-    const canvas = canvasRef.current!;
+    const canvas = canvasRef.current;
     const canvasWidth = canvas.width;
     const canvasHeight = canvas.height;
     const zoomWidth = viewportWidth / canvasWidth;
@@ -145,7 +149,7 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
     <UploadedImageLayout
       firstImage={
         <>
-          <OriginalImage src={src} onLoad={handleOnLoad} />
+          <OriginalImage src={src} onLoad={handleOnLoad} alt="original" />
           <Typography variant="body2" sx={{ alignSelf: "flex-end" }}>
             {printSize(size)}
           </Typography>
@@ -207,6 +211,7 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
 
 const OriginalImage: FC<ImgHTMLAttributes<HTMLImageElement>> = ({ style, ...restOfProps }) => {
   return (
+    // biome-ignore lint/a11y/useAltText: this is generic component
     <img
       style={{
         maxHeight: `${imageMaxHeight}px`,

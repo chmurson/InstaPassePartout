@@ -8,9 +8,9 @@ type Props = {
 export const DropZone: FC<Props> = ({ onFileAdded }) => {
   const [isDragOn, setIsDragOn] = useState(false);
   const { palette } = useTheme();
+
   return (
     <Box
-      id="drop_zone"
       sx={{
         display: "flex",
         flexDirection: "column",
@@ -47,7 +47,6 @@ export const DropZone: FC<Props> = ({ onFileAdded }) => {
       </span>
       <input
         type="file"
-        id="input"
         accept="image/*"
         multiple
         onChange={function handleFileUpload(this: HTMLInputElement, e: ChangeEvent<HTMLInputElement>) {

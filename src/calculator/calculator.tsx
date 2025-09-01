@@ -187,7 +187,14 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
               </TertiaryButton>
             )}
             secondBtn={() => (
-              <AlertButton onClick={() => images.forEach((x) => handleRemoveSingleFile(x))} size="small">
+              <AlertButton
+                onClick={() =>
+                  images.forEach((x) => {
+                    handleRemoveSingleFile(x);
+                  })
+                }
+                size="small"
+              >
                 Are you sure ?
               </AlertButton>
             )}
