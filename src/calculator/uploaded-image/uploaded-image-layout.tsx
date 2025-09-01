@@ -2,7 +2,7 @@ import { Stack, useMediaQuery, useTheme } from "@mui/material";
 import Grid2 from "@mui/material/Unstable_Grid2";
 import type { SxProps } from "@mui/system";
 import { type FC, type ReactNode, useState } from "react";
-import { imageMaxHeight, imageMaxWidth } from "./consts";
+import { imageMaxWidth } from "./consts";
 
 function lightenColor(hexColor: string, amount: number): string {
   // Normalize 3-char hex to 6-char hex (#fff -> #ffffff)

@@ -2,22 +2,13 @@ import CloseIcon from "@mui/icons-material/Close";
 import DownloadIcon from "@mui/icons-material/Download";
 import PreviewIcon from "@mui/icons-material/Preview";
 import { CircularProgress, Typography } from "@mui/material";
-import { Box } from "@mui/system";
-import {
-  type CSSProperties,
-  type FC,
-  type ImgHTMLAttributes,
-  type SyntheticEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { type FC, type ImgHTMLAttributes, type SyntheticEvent, useEffect, useRef, useState } from "react";
 import { AreYouSureButton } from "../../common/are-you-sure-button.tsx";
 import { AlertButton, SecondaryButton, TertiaryButton } from "../../common/buttons.tsx";
 import { imageMaxHeight, imageMaxWidth } from "./consts.ts";
+import { FullSizeImagePreview } from "./full-size-image-preview.tsx";
 import { UploadedImageLayout } from "./uploaded-image-layout.tsx";
+import { drawImageOnCanvas } from "./utils/drawImageOnCanvas.ts";
 
 type Props = {
   src: string;
@@ -38,35 +29,22 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
   const canvasZoomRef = useRef<string>();
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
-  const drawImageOnCanvas = useCallback(() => {
-    const marginX = (newSize.width - size.width) / 2;
+  useEffect(() => {
     if (!canvasRef.current || !loadedImageRef.current || !isImageLoaded) {
       return;
     }
-    const ctx = canvasRef.current.getContext("2d");
-    if (!ctx) {
-      console.error("CTX is null");
-      return;
-    }
-    const marginY = (newSize.height - size.height) / 2;
-
-    try {
-      const zoom = Math.min(imageMaxHeight / newSize.height, imageMaxWidth / newSize.width).toFixed(3);
-      canvasZoomRef.current = zoom;
-      canvasRef.current.style.zoom = zoom;
-      canvasRef.current.width = newSize.width;
-      canvasRef.current.height = newSize.height;
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-      ctx.drawImage(loadedImageRef.current, marginX, marginY, size.width, size.height);
-    } catch (e) {
-      console.error("error", e);
-    }
-  }, [newSize.height, newSize.width, size.height, size.width, isImageLoaded]);
-
-  useEffect(() => {
-    drawImageOnCanvas();
-  }, [drawImageOnCanvas]);
+    drawImageOnCanvas(
+      loadedImageRef.current,
+      size,
+      canvasRef.current,
+      { width: imageMaxWidth, height: imageMaxHeight },
+      {
+        newSize,
+        type: "scale-to-canvas",
+      },
+    );
+    canvasZoomRef.current = canvasRef.current.style.zoom;
+  }, [isImageLoaded, newSize, size]);
 
   function handleOnLoad(e: SyntheticEvent<HTMLImageElement>) {
     loadedImageRef.current = e.currentTarget;
@@ -97,34 +75,7 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
   }
 
   const [isPreview, setIsPreview] = useState(false);
-  const previewStyleProps: CSSProperties = useMemo(() => {
-    if (!isPreview) {
-      return { zoom: canvasZoomRef.current };
-    }
 
-    if (!canvasRef.current) {
-      return {};
-    }
-
-    const padding = 16;
-    const viewportWidth = window.innerWidth - padding * 2;
-    const viewportHeight = window.innerHeight - padding * 2;
-    const canvas = canvasRef.current;
-    const canvasWidth = canvas.width;
-    const canvasHeight = canvas.height;
-    const zoomWidth = viewportWidth / canvasWidth;
-    const zoomHeight = viewportHeight / canvasHeight;
-    const zoomLevel = Math.min(zoomWidth, zoomHeight);
-    return {
-      padding: padding,
-      zIndex: 2,
-      zoom: zoomLevel,
-      position: "fixed",
-      top: "50%",
-      left: "50%",
-      transform: "translate(-50%, -50%)",
-    } as CSSProperties;
-  }, [isPreview]);
   const handleOnPreview = () => {
     setIsPreview(true);
   };
@@ -168,20 +119,13 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
       }
       secondImage={
         <>
-          <canvas ref={canvasRef} style={previewStyleProps} onClick={() => setIsPreview(false)} />
-          {isPreview && (
-            <Box
-              sx={{
-                position: "fixed",
-                zIndex: 1,
-                top: 0,
-                right: 0,
-                width: "100vw",
-                height: "100vh",
-                backgroundColor: "black",
-                opacity: 0.75,
-              }}
-              onClick={() => setIsPreview(false)}
+          <canvas ref={canvasRef} onClick={() => setIsPreview(false)} style={{ width: "100%" }} />
+          {isPreview && loadedImageRef.current && (
+            <FullSizeImagePreview
+              image={loadedImageRef.current}
+              newSize={newSize}
+              onClose={() => setIsPreview(false)}
+              size={size}
             />
           )}
           <Typography
