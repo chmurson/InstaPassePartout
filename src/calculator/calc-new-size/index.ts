@@ -1,1 +1,1 @@
-export { calcNewSize } from './calc-new-size.ts'
+export { calcNewSize } from "./calc-new-size.ts";

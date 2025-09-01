@@ -1,77 +1,77 @@
-import { FC, FocusEventHandler, useEffect, useState } from 'react'
-import { useStorePersistedState } from '../common/use-store-persisted-state.ts'
-import { usePersistedState } from '../common/use-persisted-state.ts'
-import { Ratio } from '../main-types.ts'
+import CloseIcon from "@mui/icons-material/Close";
 import {
+  Alert,
+  FormControl,
+  InputAdornment,
+  InputLabel,
+  Link,
   MenuItem,
   Select,
-  SelectProps,
-  FormControl,
-  InputLabel,
-  TextField,
+  type SelectProps,
   Stack,
-  InputAdornment,
-  Link,
-  Alert,
-} from '@mui/material'
-import { Box } from '@mui/system'
-import { UploadedImage } from './uploaded-image'
-import { AlertButton, TertiaryButton } from '../common/buttons.tsx'
-import { calcNewSize } from './calc-new-size'
-import { AreYouSureButton } from '../common/are-you-sure-button.tsx'
-import CloseIcon from '@mui/icons-material/Close'
-import { DropZone } from './drop-zone.tsx'
-import { useError } from '../common/use-error.ts'
-import { CustomRationValue } from './custom-ratio-value.tsx'
-import { parseFloatSafely } from '../common/parse-float-safely.ts'
+  TextField,
+} from "@mui/material";
+import { Box } from "@mui/system";
+import { type FC, type FocusEventHandler, useEffect, useState } from "react";
+import { AreYouSureButton } from "../common/are-you-sure-button.tsx";
+import { AlertButton, TertiaryButton } from "../common/buttons.tsx";
+import { parseFloatSafely } from "../common/parse-float-safely.ts";
+import { useError } from "../common/use-error.ts";
+import { usePersistedState } from "../common/use-persisted-state.ts";
+import { useStorePersistedState } from "../common/use-store-persisted-state.ts";
+import type { Ratio } from "../main-types.ts";
+import { calcNewSize } from "./calc-new-size";
+import { CustomRationValue } from "./custom-ratio-value.tsx";
+import { DropZone } from "./drop-zone.tsx";
+import { UploadedImage } from "./uploaded-image";
 
-const ratioDefaultValue = '4_5'
+const ratioDefaultValue = "4_5";
 type Image = {
-  fileSrc: string
-  fileKey: string
-  sizes: { width: number; height: number }
-}
+  fileSrc: string;
+  fileKey: string;
+  sizes: { width: number; height: number };
+};
 export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro }) => {
-  const { getAllFiles, addFile, removeFile } = useStorePersistedState()
+  const { getAllFiles, addFile, removeFile } = useStorePersistedState();
 
-  const [ratio, setRatio] = usePersistedState<Ratio>(ratioDefaultValue, 'Ratio')
-  const [margin, setMargin] = usePersistedState<number>(3, 'Margin', {
+  const [ratio, setRatio] = usePersistedState<Ratio>(ratioDefaultValue, "Ratio");
+  const [margin, setMargin] = usePersistedState<number>(3, "Margin", {
     fromString: parseFloatSafely,
     toString: (x) => x.toString(),
-  })
-  const [marginInputValue, setMarginInputValue] = useState(margin.toString())
+  });
+  const [marginInputValue, setMarginInputValue] = useState(margin.toString());
 
-  const [images, setImages] = useState<Image[]>([])
+  const [images, setImages] = useState<Image[]>([]);
 
-  const handleRatioChange: SelectProps<Ratio>['onChange'] = (e) => {
-    setRatio((e.target.value as Ratio) ?? ratioDefaultValue)
-  }
+  const handleRatioChange: SelectProps<Ratio>["onChange"] = (e) => {
+    setRatio((e.target.value as Ratio) ?? ratioDefaultValue);
+  };
 
   const handleMarginChange: FocusEventHandler<HTMLInputElement> = (e) => {
-    setMarginInputValue(e.currentTarget.value)
-  }
+    setMarginInputValue(e.currentTarget.value);
+  };
 
   const handleOnMarginChangeChange = (e: { currentTarget: { value: string } }) => {
-    const newValue = Math.max(Math.min(parseFloatSafely(e.currentTarget.value), 100), 0)
-    setMarginInputValue(newValue.toString())
-    setMargin(newValue)
-  }
+    const newValue = Math.max(Math.min(parseFloatSafely(e.currentTarget.value), 100), 0);
+    setMarginInputValue(newValue.toString());
+    setMargin(newValue);
+  };
 
   useEffect(() => {
     getAllFiles().then((x) => {
       for (const maybeFile of x ?? []) {
-        const blob = new Blob([maybeFile.value as BlobPart])
-        const img = new Image()
+        const blob = new Blob([maybeFile.value as BlobPart]);
+        const img = new Image();
 
-        img.onload = function () {
+        img.onload = () => {
           const sizes = {
             width: img.width,
             height: img.height,
-          }
+          };
 
           setImages((prevImages) => {
             if (prevImages.find((x) => x.fileKey === maybeFile.key)) {
-              return prevImages
+              return prevImages;
             }
 
             return [
@@ -81,51 +81,51 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
                 sizes,
               },
               ...prevImages,
-            ]
-          })
-        }
+            ];
+          });
+        };
 
-        img.onerror = function () {
-          removeFile(maybeFile.key as string).catch((e) => console.error(e))
-        }
+        img.onerror = () => {
+          removeFile(maybeFile.key as string).catch((e) => console.error(e));
+        };
 
-        img.src = URL.createObjectURL(blob)
+        img.src = URL.createObjectURL(blob);
       }
-    })
-  }, [getAllFiles, removeFile])
+    });
+  }, [getAllFiles, removeFile]);
 
   const handleRemoveSingleFile = (image: Image) => {
-    setImages((prevState) => prevState.filter((x) => x !== image))
-    removeFile(image.fileKey)
-  }
+    setImages((prevState) => prevState.filter((x) => x !== image));
+    removeFile(image.fileKey);
+  };
 
-  const { error, addError } = useError()
+  const { error, addError } = useError();
 
   const handleFileAdded = (file: File) => {
-    const img = new Image()
+    const img = new Image();
 
-    img.onload = function () {
+    img.onload = () => {
       const sizes = {
         width: img.width,
         height: img.height,
-      }
+      };
 
-      setImages((prevImages) => [...prevImages, { fileSrc: img.src, fileKey: img.src, sizes }])
-      addFile(file, img.src)
-      console.log(img.src, file)
-    }
-    img.onerror = function () {
-      removeFile(img.src)
-      addError(`Couldn't load ${file.name}`)
-    }
+      setImages((prevImages) => [...prevImages, { fileSrc: img.src, fileKey: img.src, sizes }]);
+      addFile(file, img.src);
+      console.log(img.src, file);
+    };
+    img.onerror = () => {
+      removeFile(img.src);
+      addError(`Couldn't load ${file.name}`);
+    };
 
-    const objectURL = URL.createObjectURL(file)
+    const objectURL = URL.createObjectURL(file);
 
-    img.src = objectURL
-  }
+    img.src = objectURL;
+  };
 
-  const [customRatioValue, setCustomRatioValue] = useState<number>()
-  console.log(customRatioValue)
+  const [customRatioValue, setCustomRatioValue] = useState<number>();
+  console.log(customRatioValue);
 
   return (
     <>
@@ -133,12 +133,12 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
         color="inherit"
         underline="hover"
         variant="body2"
-        sx={{ cursor: 'pointer' }}
+        sx={{ cursor: "pointer" }}
         onClick={() => onBackToIntro()}
       >
         👈 Back to introduction
       </Link>
-      <Box sx={{ display: 'flex', gap: '1em', textAlign: 'left', pt: 2 }}>
+      <Box sx={{ display: "flex", gap: "1em", textAlign: "left", pt: 2 }}>
         <Stack spacing={2} direction="row">
           <FormControl variant="standard" sx={{ minWidth: 80 }}>
             <InputLabel>Ratio</InputLabel>
@@ -150,7 +150,7 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
               <MenuItem value="custom">Custom</MenuItem>
             </Select>
           </FormControl>
-          {ratio === 'custom' && <CustomRationValue onChange={setCustomRatioValue} />}
+          {ratio === "custom" && <CustomRationValue onChange={setCustomRatioValue} />}
           <FormControl variant="standard" sx={{ maxWidth: 80 }}>
             <TextField
               label="Margins size"
@@ -159,8 +159,8 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
               onChange={handleMarginChange}
               onBlur={handleOnMarginChangeChange}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleOnMarginChangeChange({ currentTarget: { value: marginInputValue } })
+                if (e.key === "Enter") {
+                  handleOnMarginChangeChange({ currentTarget: { value: marginInputValue } });
                 }
               }}
               InputProps={{
@@ -206,5 +206,5 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
         ))}
       </Stack>
     </>
-  )
-}
+  );
+};

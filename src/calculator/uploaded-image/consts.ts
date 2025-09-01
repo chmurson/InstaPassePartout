@@ -1,2 +1,2 @@
-export const imageMaxHeight = 200
-export const imageMaxWidth = 140
+export const imageMaxHeight = 200;
+export const imageMaxWidth = 140;

@@ -1,150 +1,152 @@
+import CloseIcon from "@mui/icons-material/Close";
+import DownloadIcon from "@mui/icons-material/Download";
+import PreviewIcon from "@mui/icons-material/Preview";
+import { CircularProgress, Typography } from "@mui/material";
+import { Box } from "@mui/system";
 import {
-  CSSProperties,
-  FC,
-  ImgHTMLAttributes,
-  SyntheticEvent,
+  type CSSProperties,
+  type FC,
+  type ImgHTMLAttributes,
+  type SyntheticEvent,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
-} from 'react'
-import { CircularProgress, Typography } from '@mui/material'
-import CloseIcon from '@mui/icons-material/Close'
-import DownloadIcon from '@mui/icons-material/Download'
-import PreviewIcon from '@mui/icons-material/Preview'
-import { AreYouSureButton } from '../../common/are-you-sure-button.tsx'
-import { AlertButton, SecondaryButton, TertiaryButton } from '../../common/buttons.tsx'
-import { imageMaxHeight, imageMaxWidth } from './consts.ts'
-import { UploadedImageLayout } from './uploaded-image-layout.tsx'
-import { Box } from '@mui/system'
+} from "react";
+import { AreYouSureButton } from "../../common/are-you-sure-button.tsx";
+import { AlertButton, SecondaryButton, TertiaryButton } from "../../common/buttons.tsx";
+import { imageMaxHeight, imageMaxWidth } from "./consts.ts";
+import { UploadedImageLayout } from "./uploaded-image-layout.tsx";
 
 type Props = {
-  src: string
+  src: string;
   size: {
-    width: number
-    height: number
-  }
+    width: number;
+    height: number;
+  };
   newSize: {
-    width: number
-    height: number
-  }
-  onRemove: () => void
-}
+    width: number;
+    height: number;
+  };
+  onRemove: () => void;
+};
 
 export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const loadedImageRef = useRef<HTMLImageElement>()
-  const canvasZoomRef = useRef<string>()
-  const [isImageLoaded, setIsImageLoaded] = useState(false)
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const loadedImageRef = useRef<HTMLImageElement>();
+  const canvasZoomRef = useRef<string>();
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   const drawImageOnCanvas = useCallback(() => {
-    const marginX = (newSize.width - size.width) / 2
+    const marginX = (newSize.width - size.width) / 2;
     if (!canvasRef.current || !loadedImageRef.current || !isImageLoaded) {
-      return
+      return;
     }
-    const ctx = canvasRef.current.getContext('2d')
+    const ctx = canvasRef.current.getContext("2d");
     if (!ctx) {
-      console.error('CTX is null')
-      return
+      console.error("CTX is null");
+      return;
     }
-    const marginY = (newSize.height - size.height) / 2
+    const marginY = (newSize.height - size.height) / 2;
 
     try {
-      console.log([newSize.height, newSize.width, size.height, size.width])
-      const zoom = Math.min(imageMaxHeight / newSize.height, imageMaxWidth / newSize.width).toFixed(3)
-      canvasZoomRef.current = zoom
+      console.log([newSize.height, newSize.width, size.height, size.width]);
+      const zoom = Math.min(imageMaxHeight / newSize.height, imageMaxWidth / newSize.width).toFixed(3);
+      canvasZoomRef.current = zoom;
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      canvasRef.current.style.zoom = zoom
-      canvasRef.current.width = newSize.width
-      canvasRef.current.height = newSize.height
-      ctx.fillStyle = 'white'
-      ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height)
-      ctx.drawImage(loadedImageRef.current, marginX, marginY, size.width, size.height)
+      // @ts-expect-error
+      canvasRef.current.style.zoom = zoom;
+      canvasRef.current.width = newSize.width;
+      canvasRef.current.height = newSize.height;
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      ctx.drawImage(loadedImageRef.current, marginX, marginY, size.width, size.height);
     } catch (e) {
-      console.error('error', e)
+      console.error("error", e);
     }
-  }, [newSize.height, newSize.width, size.height, size.width, isImageLoaded])
+  }, [newSize.height, newSize.width, size.height, size.width, isImageLoaded]);
 
   useEffect(() => {
-    drawImageOnCanvas()
-  }, [drawImageOnCanvas])
+    drawImageOnCanvas();
+  }, [drawImageOnCanvas]);
 
   function handleOnLoad(e: SyntheticEvent<HTMLImageElement>) {
-    loadedImageRef.current = e.currentTarget
-    setIsImageLoaded(true)
+    loadedImageRef.current = e.currentTarget;
+    setIsImageLoaded(true);
   }
 
-  const [downloading, setDownloading] = useState(false)
+  const [downloading, setDownloading] = useState(false);
 
   function handleDownload() {
     if (downloading) {
-      return
+      return;
     }
 
-    setDownloading(true)
+    setDownloading(true);
 
     setTimeout(() => {
       if (!canvasRef.current) {
-        return
+        return;
       }
 
-      const downloadLink = document.createElement('a')
-      downloadLink.href = canvasRef.current.toDataURL('image/png')
-      downloadLink.download = 'image_with_margins.png'
-      downloadLink.click()
+      const downloadLink = document.createElement("a");
+      downloadLink.href = canvasRef.current.toDataURL("image/png");
+      downloadLink.download = "image_with_margins.png";
+      downloadLink.click();
 
-      setDownloading(false)
-    }, 125)
+      setDownloading(false);
+    }, 125);
   }
 
-  const [isPreview, setIsPreview] = useState(false)
+  const [isPreview, setIsPreview] = useState(false);
   const previewStyleProps: CSSProperties = useMemo(() => {
     if (!isPreview) {
-      return { zoom: canvasZoomRef.current }
+      return { zoom: canvasZoomRef.current };
     }
 
-    const viewportWidth = window.innerWidth
-    const viewportHeight = window.innerHeight
-    const canvas = canvasRef.current!
-    const canvasWidth = canvas.width
-    const canvasHeight = canvas.height
-    const zoomWidth = viewportWidth / canvasWidth
-    const zoomHeight = viewportHeight / canvasHeight
-    const zoomLevel = Math.min(zoomWidth, zoomHeight)
+    const padding = 16;
+    const viewportWidth = window.innerWidth - padding * 2;
+    const viewportHeight = window.innerHeight - padding * 2;
+    const canvas = canvasRef.current!;
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+    const zoomWidth = viewportWidth / canvasWidth;
+    const zoomHeight = viewportHeight / canvasHeight;
+    const zoomLevel = Math.min(zoomWidth, zoomHeight);
     return {
+      padding: padding,
       zIndex: 2,
       zoom: zoomLevel,
-      position: 'fixed',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-    } as CSSProperties
-  }, [isPreview])
+      position: "fixed",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+    } as CSSProperties;
+  }, [isPreview]);
   const handleOnPreview = () => {
-    setIsPreview(true)
-  }
+    setIsPreview(true);
+  };
 
   useEffect(() => {
-    const handler: (this: Document, ev: DocumentEventMap['keydown']) => void = (ev) => {
-      if (ev.key === 'Escape') {
-        setIsPreview(() => false)
+    const handler: (this: Document, ev: DocumentEventMap["keydown"]) => void = (ev) => {
+      if (ev.key === "Escape") {
+        setIsPreview(() => false);
       }
-    }
+    };
 
-    document.addEventListener('keydown', handler, { capture: true })
+    document.addEventListener("keydown", handler, { capture: true });
     return () => {
-      document.removeEventListener('keydown', handler, { capture: true })
-    }
-  }, [setIsPreview])
+      document.removeEventListener("keydown", handler, { capture: true });
+    };
+  }, []);
 
   return (
     <UploadedImageLayout
       firstImage={
         <>
           <OriginalImage src={src} onLoad={handleOnLoad} />
-          <Typography variant="body2" sx={{ alignSelf: 'flex-end' }}>
+          <Typography variant="body2" sx={{ alignSelf: "flex-end" }}>
             {printSize(size)}
           </Typography>
         </>
@@ -155,19 +157,19 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
           {isPreview && (
             <Box
               sx={{
-                position: 'fixed',
+                position: "fixed",
                 zIndex: 1,
                 top: 0,
                 right: 0,
-                width: '100vw',
-                height: '100vh',
-                backgroundColor: 'black',
+                width: "100vw",
+                height: "100vh",
+                backgroundColor: "black",
                 opacity: 0.75,
               }}
               onClick={() => setIsPreview(false)}
             />
           )}
-          <Typography variant="body2" sx={{ alignSelf: 'flex-end' }}>
+          <Typography variant="body2" sx={{ alignSelf: "flex-end" }}>
             {printSize(newSize)}
           </Typography>
         </>
@@ -200,8 +202,8 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
         </>
       }
     />
-  )
-}
+  );
+};
 
 const OriginalImage: FC<ImgHTMLAttributes<HTMLImageElement>> = ({ style, ...restOfProps }) => {
   return (
@@ -209,15 +211,15 @@ const OriginalImage: FC<ImgHTMLAttributes<HTMLImageElement>> = ({ style, ...rest
       style={{
         maxHeight: `${imageMaxHeight}px`,
         maxWidth: `${imageMaxWidth}px`,
-        height: 'auto',
-        width: 'auto',
+        height: "auto",
+        width: "auto",
         ...(style ?? {}),
       }}
       {...restOfProps}
     />
-  )
-}
+  );
+};
 
 function printSize({ height, width }: { height: number; width: number }) {
-  return `${width} x ${height}`
+  return `${width} x ${height}`;
 }

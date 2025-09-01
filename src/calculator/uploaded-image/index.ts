@@ -1,1 +1,1 @@
-export { UploadedImage } from './uploaded-image.tsx'
+export { UploadedImage } from "./uploaded-image.tsx";

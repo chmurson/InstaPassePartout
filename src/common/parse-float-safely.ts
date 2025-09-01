@@ -1,7 +1,7 @@
 export function parseFloatSafely(maybeNumber: string) {
-  const result = parseFloat(maybeNumber)
+  const result = parseFloat(maybeNumber);
   if (!Number.isNaN(result)) {
-    return result
+    return result;
   }
-  return 0
+  return 0;
 }

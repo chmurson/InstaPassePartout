@@ -1,12 +1,12 @@
-import { FC } from 'react'
-import { GitHub, Instagram } from '@mui/icons-material'
-import { Link, Stack } from '@mui/material'
-// @ts-ignore
-import Wiki from './assets/wiki2.svg?react'
+import { GitHub, Instagram } from "@mui/icons-material";
+import { Link, Stack } from "@mui/material";
+import type { FC } from "react";
+// @ts-expect-error
+import Wiki from "./assets/wiki2.svg?react";
 
 export const Footer: FC = () => {
   return (
-    <footer style={{ padding: '1em 2em', borderTop: '1px solid #bcbcbc' }}>
+    <footer style={{ padding: "1em 2em", borderTop: "1px solid #bcbcbc" }}>
       <Stack justifyContent="space-between" direction="row">
         <Link
           color="inherit"
@@ -30,5 +30,5 @@ export const Footer: FC = () => {
         </Stack>
       </Stack>
     </footer>
-  )
-}
+  );
+};
