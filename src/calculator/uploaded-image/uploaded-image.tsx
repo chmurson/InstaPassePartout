@@ -54,8 +54,6 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
       console.log([newSize.height, newSize.width, size.height, size.width]);
       const zoom = Math.min(imageMaxHeight / newSize.height, imageMaxWidth / newSize.width).toFixed(3);
       canvasZoomRef.current = zoom;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-expect-error
       canvasRef.current.style.zoom = zoom;
       canvasRef.current.width = newSize.width;
       canvasRef.current.height = newSize.height;
@@ -148,12 +146,26 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
   return (
     <UploadedImageLayout
       firstImage={
-        <>
+        <div
+          style={{
+            flexGrow: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
           <OriginalImage src={src} onLoad={handleOnLoad} alt="original" />
-          <Typography variant="body2" sx={{ alignSelf: "flex-end" }}>
-            {printSize(size)}
+          <Typography
+            variant="body2"
+            sx={{ alignSelf: "flex-end" }}
+            display="flex"
+            flexDirection="column"
+            alignItems="end"
+          >
+            {printSize(size, { showAprroxNiceRatio: true })}
           </Typography>
-        </>
+        </div>
       }
       secondImage={
         <>
@@ -173,7 +185,13 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
               onClick={() => setIsPreview(false)}
             />
           )}
-          <Typography variant="body2" sx={{ alignSelf: "flex-end" }}>
+          <Typography
+            variant="body2"
+            sx={{ alignSelf: "flex-end" }}
+            display="flex"
+            flexDirection="column"
+            alignItems="end"
+          >
             {printSize(newSize)}
           </Typography>
         </>
@@ -225,6 +243,61 @@ const OriginalImage: FC<ImgHTMLAttributes<HTMLImageElement>> = ({ style, ...rest
   );
 };
 
-function printSize({ height, width }: { height: number; width: number }) {
-  return `${width} x ${height}`;
+function printSize(
+  { height, width }: { height: number; width: number },
+  { showAprroxNiceRatio = false }: { showAprroxNiceRatio?: boolean } = {},
+) {
+  const { ratioText, isNice } = calculateAspectRatio(width, height);
+
+  const humanReadableRatioText =
+    !isNice && showAprroxNiceRatio ? findApproximateNiceRatioText(width, height) : ratioText;
+
+  return (
+    <>
+      <span>
+        {width} x {height}
+      </span>
+      <span>{humanReadableRatioText}</span>
+    </>
+  );
+}
+
+/**
+ * Finds the closest "nice ratio" for given dimensions.
+ * A nice ratio uses simple whole numbers (1-19) for both numerator and denominator.
+ * For example, 4684 x 3122 (≈1.5) would be closest to 3:2.
+ */
+function findApproximateNiceRatioText(width: number, height: number): string {
+  const actualRatio = width / height;
+  let closestRatio = { numerator: 1, denominator: 1, difference: Math.abs(actualRatio - 1) };
+
+  // Check all combinations of 1-19 for numerator and denominator
+  for (let num = 1; num <= 19; num++) {
+    for (let den = 1; den <= 19; den++) {
+      const ratio = num / den;
+      const difference = Math.abs(actualRatio - ratio);
+
+      if (difference < closestRatio.difference) {
+        closestRatio = { numerator: num, denominator: den, difference };
+      }
+    }
+  }
+
+  return `~${closestRatio.numerator}:${closestRatio.denominator}`;
+}
+
+function calculateAspectRatio(width: number, height: number): { ratioText: string; isNice: boolean } {
+  // Find the greatest common divisor
+  const gcd = (a: number, b: number): number => {
+    return b === 0 ? a : gcd(b, a % b);
+  };
+
+  const divisor = gcd(width, height);
+  const ratioWidth = width / divisor;
+  const ratioHeight = height / divisor;
+
+  return {
+    ratioText: `${ratioWidth}:${ratioHeight}`,
+    isNice: ratioHeight < 20 && ratioWidth < 20,
+  };
 }

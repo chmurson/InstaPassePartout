@@ -201,7 +201,7 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
           />
         </Box>
       )}
-      <Stack>
+      <Stack gap={2}>
         {images.map((image) => (
           <UploadedImage
             key={image.fileSrc}
