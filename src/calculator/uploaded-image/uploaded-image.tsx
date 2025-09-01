@@ -51,7 +51,6 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
     const marginY = (newSize.height - size.height) / 2;
 
     try {
-      console.log([newSize.height, newSize.width, size.height, size.width]);
       const zoom = Math.min(imageMaxHeight / newSize.height, imageMaxWidth / newSize.width).toFixed(3);
       canvasZoomRef.current = zoom;
       canvasRef.current.style.zoom = zoom;

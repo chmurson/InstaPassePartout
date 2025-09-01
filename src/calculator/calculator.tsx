@@ -10,6 +10,7 @@ import {
   type SelectProps,
   Stack,
   TextField,
+  Typography,
 } from "@mui/material";
 import { Box } from "@mui/system";
 import { type FC, type FocusEventHandler, useEffect, useState } from "react";
@@ -125,7 +126,6 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
   };
 
   const [customRatioValue, setCustomRatioValue] = useState<number>();
-  console.log(customRatioValue);
 
   return (
     <>
@@ -143,10 +143,21 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
           <FormControl variant="standard" sx={{ minWidth: 80 }}>
             <InputLabel>Ratio</InputLabel>
             <Select value={ratio} onChange={handleRatioChange}>
+              <Typography variant="body2" sx={{ fontWeight: "bold", px: 1 }}>
+                Classic Rations:
+              </Typography>
+              <MenuItem value="2_3">2:3 Portrait</MenuItem>
+              <MenuItem value="3_2">3:2 Landscape</MenuItem>
+              <Typography variant="body2" sx={{ fontWeight: "bold", px: 1 }}>
+                Instagram:
+              </Typography>
               <MenuItem value="4_5">4:5 Portrait Photo</MenuItem>
               <MenuItem value="1_1">1:1 Square Photo</MenuItem>
               <MenuItem value="1.91_1">1.91:1 Landscape Photo</MenuItem>
               <MenuItem value="9_16">9:16 Instagram Stories</MenuItem>
+              <Typography variant="body2" sx={{ fontWeight: "bold", px: 1 }}>
+                Custom:
+              </Typography>
               <MenuItem value="custom">Custom</MenuItem>
             </Select>
           </FormControl>
