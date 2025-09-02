@@ -56,6 +56,7 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
 
   const handleRatioChange: SelectProps<Ratio>["onChange"] = (e) => {
     setRatio((e.target.value as Ratio) ?? ratioDefaultValue);
+    setSplitImages([]);
   };
 
   const handleMarginChange: FocusEventHandler<HTMLInputElement> = (e) => {
@@ -147,8 +148,10 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
     });
   };
 
+  const isCurrentRatioPortrait = isRatioPortrait(ratio, customRatioValue);
+
   return (
-    <>
+    <Stack spacing={4}>
       <Link
         color="inherit"
         underline="hover"
@@ -158,7 +161,7 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
       >
         👈 Back to introduction
       </Link>
-      <Box sx={{ display: "flex", gap: "1em", textAlign: "left", pt: 2 }}>
+      <Box sx={{ display: "flex", gap: "1em", textAlign: "left" }}>
         <Stack spacing={2} direction="row">
           <FormControl variant="standard" sx={{ minWidth: 80 }}>
             <InputLabel>Ratio</InputLabel>
@@ -203,7 +206,13 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
           </FormControl>
         </Stack>
       </Box>
-      <Box sx={{ mt: 4 }}>
+      {isCurrentRatioPortrait && (
+        <Alert severity="info">
+          The current ratio is <strong>portrait</strong>, which allows landscape images to be{" "}
+          <strong>split vertically</strong>.
+        </Alert>
+      )}
+      <Box>
         <DropZone onFileAdded={handleFileAdded} />
       </Box>
       {error && (
@@ -212,7 +221,7 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
         </Alert>
       )}
       {images.length > 1 && (
-        <Box mt={2}>
+        <Box>
           <AreYouSureButton
             firstBtn={({ onClick }) => (
               <TertiaryButton startIcon={<CloseIcon />} onClick={onClick} size="small">
@@ -249,9 +258,19 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
             onRemove={() => handleRemoveSingleFile(image)}
             isSplit={splitImages.includes(image.fileKey)}
             onSplit={() => handleSplitImage(image)}
+            isCurrentRatioPortrait={isCurrentRatioPortrait}
           />
         ))}
       </Stack>
-    </>
+    </Stack>
   );
 };
+
+function isRatioPortrait(ratio: string, customRatioValue?: number): boolean {
+  if (ratio === "custom") {
+    return customRatioValue !== undefined && customRatioValue < 1;
+  }
+
+  const [width, height] = ratio.split("_").map(Number);
+  return width < height;
+}

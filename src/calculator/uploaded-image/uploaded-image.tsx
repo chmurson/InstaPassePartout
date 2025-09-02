@@ -1,8 +1,7 @@
-import { Splitscreen } from "@mui/icons-material";
 import CloseIcon from "@mui/icons-material/Close";
 import DownloadIcon from "@mui/icons-material/Download";
 import PreviewIcon from "@mui/icons-material/Preview";
-import { CircularProgress, Typography } from "@mui/material";
+import { CircularProgress, FormControlLabel, Switch, Tooltip, Typography } from "@mui/material";
 import { type FC, type ImgHTMLAttributes, type SyntheticEvent, useEffect, useRef, useState } from "react";
 import { AreYouSureButton } from "../../common/are-you-sure-button.tsx";
 import { AlertButton, SecondaryButton, TertiaryButton } from "../../common/buttons.tsx";
@@ -28,9 +27,18 @@ type Props = {
   onRemove: () => void;
   onSplit: () => void;
   isSplit: boolean;
+  isCurrentRatioPortrait: boolean;
 };
 
-export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove, onSplit, isSplit }) => {
+export const UploadedImage: FC<Props> = ({
+  src,
+  size,
+  newSize,
+  onRemove,
+  onSplit,
+  isSplit,
+  isCurrentRatioPortrait,
+}) => {
   const loadedImageRef = useRef<HTMLImageElement>();
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
@@ -89,10 +97,6 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove, onSplit
     setIsPreview(true);
   };
 
-  const handleToggleSplit = () => {
-    onSplit();
-  };
-
   useEffect(() => {
     const handler: (this: Document, ev: DocumentEventMap["keydown"]) => void = (ev) => {
       if (ev.key === "Escape") {
@@ -105,6 +109,9 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove, onSplit
       document.removeEventListener("keydown", handler, { capture: true });
     };
   }, []);
+
+  const photoIsLandscape = size.width > size.height;
+  const canToggleSplit = isCurrentRatioPortrait && photoIsLandscape;
 
   return (
     <UploadedImageLayout
@@ -173,9 +180,19 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove, onSplit
               </AlertButton>
             )}
           />
-          <SecondaryButton startIcon={<Splitscreen />} size="small" onClick={handleToggleSplit}>
-            Toggle Split
-          </SecondaryButton>
+          {isCurrentRatioPortrait && (
+            <Tooltip title={!canToggleSplit && "Only photos in landscape can be split vertically"}>
+              <FormControlLabel
+                control={<Switch checked={isSplit} onChange={() => onSplit()} />}
+                label={
+                  <Typography variant="body2" style={{ fontSize: 12 }}>
+                    Vertical Split
+                  </Typography>
+                }
+                disabled={!canToggleSplit}
+              />
+            </Tooltip>
+          )}
           <SecondaryButton startIcon={<PreviewIcon />} size="small" onClick={handleOnPreview}>
             Preview
           </SecondaryButton>
