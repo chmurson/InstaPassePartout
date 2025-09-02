@@ -20,7 +20,7 @@ export function drawImageOnCanvas(
       Math.round(Math.min(canvasMaxSize.width / newSize.width, canvasMaxSize.height / newSize.height) * 1000) / 1000;
 
     const [canvasZoom, imageScaleDownRatio] =
-      type === "scale-to-canvas" ? [canvasMaxSizeToRealImageRatio, 1] : [1, canvasMaxSizeToRealImageRatio];
+      type === "scale-to-image" ? [canvasMaxSizeToRealImageRatio, 1] : [1 / 2, canvasMaxSizeToRealImageRatio * 2];
 
     canvas.width = newSize.width * imageScaleDownRatio;
     canvas.height = newSize.height * imageScaleDownRatio;

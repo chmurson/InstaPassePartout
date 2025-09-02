@@ -5,7 +5,6 @@ import { type FC, type ReactNode, useState } from "react";
 import { imageMaxWidth } from "./consts";
 
 function lightenColor(hexColor: string, amount: number): string {
-  // Normalize 3-char hex to 6-char hex (#fff -> #ffffff)
   let normalizedHex = hexColor;
   if (hexColor.match(/^#([0-9a-f]{3})$/i)) {
     const shortHex = hexColor.slice(1);
@@ -64,15 +63,16 @@ export const UploadedImageLayout: FC<{
       <Grid2 xs={5} sm={4} sx={imageGridProps}>
         {secondImage}
       </Grid2>
-      <Grid2 xs={12} sm={4} sx={{ alignSelf: "stretch", display: "flex" }}>
+      <Grid2 xs={12} sm={4} sx={{ alignSelf: "stretch", display: "flex", position: "relative" }}>
         <Stack
+          position={!isXs ? "absolute" : "relative"}
           flexDirection={isXs ? "row" : "column"}
           display="flex"
-          spacing={isXs ? 0 : 2}
+          spacing={isXs ? 0 : 1}
           sx={{ maxWidth: isXs ? imageMaxWidth * 2.5 : `${180}px`, width: "100%" }}
           justifyContent={isXs ? "space-between" : "flex-start"}
           alignItems={isXs ? "center" : "stretch"}
-          padding={isXs ? 0 : 2}
+          paddingX={isXs ? 0 : 2}
           alignSelf="stretch"
         >
           {(isHover || isXs) && buttons}

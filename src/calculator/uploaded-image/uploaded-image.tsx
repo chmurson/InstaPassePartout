@@ -1,3 +1,4 @@
+import { Splitscreen } from "@mui/icons-material";
 import CloseIcon from "@mui/icons-material/Close";
 import DownloadIcon from "@mui/icons-material/Download";
 import PreviewIcon from "@mui/icons-material/Preview";
@@ -5,13 +6,17 @@ import { CircularProgress, Typography } from "@mui/material";
 import { type FC, type ImgHTMLAttributes, type SyntheticEvent, useEffect, useRef, useState } from "react";
 import { AreYouSureButton } from "../../common/are-you-sure-button.tsx";
 import { AlertButton, SecondaryButton, TertiaryButton } from "../../common/buttons.tsx";
+import { delay } from "../../common/delay.tsx";
 import { CanvasWithNewSizeThumbnail } from "./canvas-with-new-size-thumbnail.tsx";
 import { imageMaxHeight, imageMaxWidth } from "./consts.ts";
 import { FullSizeImagePreview } from "./full-size-image-preview.tsx";
 import { UploadedImageLayout } from "./uploaded-image-layout.tsx";
+import { drawImageOnCanvas } from "./utils/drawImageOnCanvas.ts";
+import { drawSplitImageOnCanvas } from "./utils/drawSplitImageOnCavas.ts";
 
 type Props = {
   src: string;
+  fileName: string;
   size: {
     width: number;
     height: number;
@@ -21,12 +26,13 @@ type Props = {
     height: number;
   };
   onRemove: () => void;
+  onSplit: () => void;
+  isSplit: boolean;
 };
 
-export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove, onSplit, isSplit }) => {
   const loadedImageRef = useRef<HTMLImageElement>();
-  const [_isImageLoaded, setIsImageLoaded] = useState(false);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   function handleOnLoad(e: SyntheticEvent<HTMLImageElement>) {
     loadedImageRef.current = e.currentTarget;
@@ -42,15 +48,36 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
 
     setDownloading(true);
 
-    setTimeout(() => {
-      if (!canvasRef.current) {
+    setTimeout(async () => {
+      if (!loadedImageRef.current) {
         return;
       }
 
-      const downloadLink = document.createElement("a");
-      downloadLink.href = canvasRef.current.toDataURL("image/png");
-      downloadLink.download = "image_with_margins.png";
-      downloadLink.click();
+      const canvases = [document.createElement("canvas")];
+      if (isSplit) {
+        canvases.push(document.createElement("canvas"));
+      }
+
+      if (!isSplit) {
+        drawImageOnCanvas(loadedImageRef.current, size, canvases[0], newSize, { newSize, type: "scale-to-image" });
+        downloadCanvasImage(canvases[0]);
+      } else {
+        drawSplitImageOnCanvas(loadedImageRef.current, size, canvases[0], newSize, {
+          newSize,
+          type: "scale-to-image",
+          splitPart: "left",
+        });
+        downloadCanvasImage(canvases[0]);
+
+        await delay(125);
+
+        drawSplitImageOnCanvas(loadedImageRef.current, size, canvases[1], newSize, {
+          newSize,
+          type: "scale-to-image",
+          splitPart: "right",
+        });
+        downloadCanvasImage(canvases[1]);
+      }
 
       setDownloading(false);
     }, 125);
@@ -60,6 +87,10 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
 
   const handleOnPreview = () => {
     setIsPreview(true);
+  };
+
+  const handleToggleSplit = () => {
+    onSplit();
   };
 
   useEffect(() => {
@@ -101,20 +132,20 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
       }
       secondImage={
         <>
-          {
-            <CanvasWithNewSizeThumbnail
-              image={loadedImageRef.current}
-              isImageLoaded={true}
-              newSize={newSize}
-              size={size}
-            />
-          }
+          <CanvasWithNewSizeThumbnail
+            image={loadedImageRef.current}
+            isImageLoaded={isImageLoaded}
+            newSize={newSize}
+            size={size}
+            isVerticalSplit={isSplit}
+          />
           {isPreview && loadedImageRef.current && (
             <FullSizeImagePreview
               image={loadedImageRef.current}
               newSize={newSize}
               onClose={() => setIsPreview(false)}
               size={size}
+              isVerticalSplit={isSplit}
             />
           )}
           <Typography
@@ -142,6 +173,9 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
               </AlertButton>
             )}
           />
+          <SecondaryButton startIcon={<Splitscreen />} size="small" onClick={handleToggleSplit}>
+            Toggle Split
+          </SecondaryButton>
           <SecondaryButton startIcon={<PreviewIcon />} size="small" onClick={handleOnPreview}>
             Preview
           </SecondaryButton>
@@ -161,7 +195,7 @@ export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove }) => {
 
 const OriginalImage: FC<ImgHTMLAttributes<HTMLImageElement>> = ({ style, ...restOfProps }) => {
   return (
-    // biome-ignore lint/a11y/useAltText: this is generic component
+    // biome-ignore lint/a11y/useAltText: "Generic component"
     <img
       style={{
         maxHeight: `${imageMaxHeight}px`,
@@ -194,16 +228,10 @@ function printSize(
   );
 }
 
-/**
- * Finds the closest "nice ratio" for given dimensions.
- * A nice ratio uses simple whole numbers (1-19) for both numerator and denominator.
- * For example, 4684 x 3122 (≈1.5) would be closest to 3:2.
- */
 function findApproximateNiceRatioText(width: number, height: number): string {
   const actualRatio = width / height;
   let closestRatio = { numerator: 1, denominator: 1, difference: Math.abs(actualRatio - 1) };
 
-  // Check all combinations of 1-19 for numerator and denominator
   for (let num = 1; num <= 19; num++) {
     for (let den = 1; den <= 19; den++) {
       const ratio = num / den;
@@ -219,7 +247,6 @@ function findApproximateNiceRatioText(width: number, height: number): string {
 }
 
 function calculateAspectRatio(width: number, height: number): { ratioText: string; isNice: boolean } {
-  // Find the greatest common divisor
   const gcd = (a: number, b: number): number => {
     return b === 0 ? a : gcd(b, a % b);
   };
@@ -232,4 +259,11 @@ function calculateAspectRatio(width: number, height: number): { ratioText: strin
     ratioText: `${ratioWidth}:${ratioHeight}`,
     isNice: ratioHeight < 20 && ratioWidth < 20,
   };
+}
+
+function downloadCanvasImage(image: HTMLCanvasElement, name?: string) {
+  const downloadLink = document.createElement("a");
+  downloadLink.href = image.toDataURL("image/png");
+  downloadLink.download = name ?? "image_with_margins.png";
+  downloadLink.click();
 }

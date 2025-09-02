@@ -8,11 +8,13 @@ export const CanvasWithNewSizeThumbnail = ({
   isImageLoaded,
   size,
   newSize,
+  isVerticalSplit,
 }: {
   image?: HTMLImageElement;
   isImageLoaded: boolean;
   size: { width: number; height: number };
   newSize: { width: number; height: number };
+  isVerticalSplit: boolean;
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -20,17 +22,16 @@ export const CanvasWithNewSizeThumbnail = ({
     if (!canvasRef.current || !isImageLoaded || !image) {
       return;
     }
-    drawImageOnCanvas(
-      image,
-      size,
-      canvasRef.current,
-      { width: imageMaxWidth, height: imageMaxHeight },
-      {
-        newSize,
-        type: "scale-to-canvas",
-      },
-    );
-  }, [isImageLoaded, newSize, size, image]);
+
+    const maxDimensions = isVerticalSplit
+      ? { width: imageMaxHeight, height: imageMaxWidth }
+      : { width: imageMaxWidth, height: imageMaxHeight };
+
+    drawImageOnCanvas(image, size, canvasRef.current, maxDimensions, {
+      newSize,
+      type: "scale-to-canvas",
+    });
+  }, [isImageLoaded, newSize, size, image, isVerticalSplit]);
 
   const isAllLoaded = isImageLoaded && image;
   const sekeletonMarginsY = ((newSize.height - size.height) * imageMaxHeight) / newSize.height;

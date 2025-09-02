@@ -1,26 +1,29 @@
 import { Box } from "@mui/system";
 import { type CSSProperties, useEffect, useMemo, useRef } from "react";
 import { drawImageOnCanvas } from "./utils/drawImageOnCanvas";
+import { drawSplitImageOnCanvas } from "./utils/drawSplitImageOnCavas";
 
 export const FullSizeImagePreview = ({
   image,
   onClose,
   size,
   newSize,
+  isVerticalSplit,
 }: {
   image: HTMLImageElement;
   onClose: () => void;
   size: { width: number; height: number };
   newSize: { width: number; height: number };
+  isVerticalSplit: boolean;
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const canvasZoomRef = useRef<string>("");
+  const canvasRef1 = useRef<HTMLCanvasElement>(null);
+  const canvasRef2 = useRef<HTMLCanvasElement>(null);
 
   const styleProps: CSSProperties = useMemo(() => {
     const padding = 16;
     const viewportWidth = window.innerWidth - padding * 2;
     const viewportHeight = window.innerHeight - padding * 2;
-    const canvas = canvasRef.current;
+    const canvas = canvasRef1.current;
 
     if (!canvas || !image) return {};
 
@@ -41,22 +44,50 @@ export const FullSizeImagePreview = ({
   }, [image]);
 
   useEffect(() => {
-    if (!canvasRef.current) {
+    if (!canvasRef1.current) {
       return;
     }
 
-    drawImageOnCanvas(
-      image,
-      size,
-      canvasRef.current,
-      { width: document.body.clientWidth, height: document.body.clientHeight },
-      {
-        newSize,
-        type: "scale-to-canvas",
-      },
-    );
-    canvasZoomRef.current = canvasRef.current.style.zoom;
-  }, [newSize, size, image]);
+    if (!isVerticalSplit) {
+      drawImageOnCanvas(
+        image,
+        size,
+        canvasRef1.current,
+        { width: document.body.clientWidth, height: document.body.clientHeight },
+        {
+          newSize,
+          type: "scale-to-image",
+        },
+      );
+    } else {
+      drawSplitImageOnCanvas(
+        image,
+        size,
+        canvasRef1.current,
+        { width: document.body.clientWidth / 2, height: document.body.clientHeight },
+        {
+          newSize,
+          type: "scale-to-image",
+          splitPart: "left",
+        },
+      );
+      if (!canvasRef2.current) {
+        return;
+      }
+
+      drawSplitImageOnCanvas(
+        image,
+        size,
+        canvasRef2.current,
+        { width: document.body.clientWidth / 2, height: document.body.clientHeight },
+        {
+          newSize,
+          type: "scale-to-image",
+          splitPart: "right",
+        },
+      );
+    }
+  }, [newSize, size, image, isVerticalSplit]);
 
   return (
     <Box
@@ -74,7 +105,8 @@ export const FullSizeImagePreview = ({
       }}
       onClick={() => onClose()}
     >
-      <canvas ref={canvasRef} style={styleProps} />
+      <canvas ref={canvasRef1} style={styleProps} />
+      {isVerticalSplit && <canvas ref={canvasRef2} style={styleProps} />}
     </Box>
   );
 };

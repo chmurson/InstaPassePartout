@@ -34,6 +34,16 @@ type Image = {
 };
 export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro }) => {
   const { getAllFiles, addFile, removeFile } = useStorePersistedState();
+  const [splitImages, setSplitImages] = usePersistedState<string[]>([], "splitImages", {
+    fromString: (value) => {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return [];
+      }
+    },
+    toString: (value) => JSON.stringify(value),
+  });
 
   const [ratio, setRatio] = usePersistedState<Ratio>(ratioDefaultValue, "Ratio");
   const [margin, setMargin] = usePersistedState<number>(3, "Margin", {
@@ -127,6 +137,16 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
 
   const [customRatioValue, setCustomRatioValue] = useState<number>();
 
+  const handleSplitImage = (image: Image) => {
+    setSplitImages((prevSplitImages) => {
+      const has = prevSplitImages.includes(image.fileKey);
+      if (!has) {
+        return [...prevSplitImages, image.fileKey];
+      }
+      return prevSplitImages.filter((src) => src !== image.fileKey);
+    });
+  };
+
   return (
     <>
       <Link
@@ -151,6 +171,8 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
               <Typography variant="body2" sx={{ fontWeight: "bold", px: 1 }}>
                 Instagram:
               </Typography>
+              <MenuItem value="3_4">3:4 Portrait</MenuItem>
+              <MenuItem value="4_3">4:3 Landscape</MenuItem>
               <MenuItem value="4_5">4:5 Portrait Photo</MenuItem>
               <MenuItem value="1_1">1:1 Square Photo</MenuItem>
               <MenuItem value="1.91_1">1.91:1 Landscape Photo</MenuItem>
@@ -215,11 +237,18 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
       <Stack gap={2}>
         {images.map((image) => (
           <UploadedImage
+            fileName={image.fileSrc}
             key={image.fileSrc}
             src={image.fileSrc}
             size={image.sizes}
-            newSize={calcNewSize(image.sizes, { ratio, customRatioValue }, margin)}
+            newSize={calcNewSize(
+              image.sizes,
+              { ratio, customRatioValue, isSplit: splitImages.includes(image.fileKey) },
+              margin,
+            )}
             onRemove={() => handleRemoveSingleFile(image)}
+            isSplit={splitImages.includes(image.fileKey)}
+            onSplit={() => handleSplitImage(image)}
           />
         ))}
       </Stack>
