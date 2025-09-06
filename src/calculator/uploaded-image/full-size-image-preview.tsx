@@ -1,5 +1,6 @@
 import { Box } from "@mui/system";
-import { type CSSProperties, useEffect, useMemo, useRef } from "react";
+import { type CSSProperties, type MouseEventHandler, useEffect, useMemo, useRef, useState } from "react";
+import { SecondaryButton } from "../../common/buttons";
 import { drawImageOnCanvas } from "./utils/drawImageOnCanvas";
 import { drawSplitImageOnCanvas } from "./utils/drawSplitImageOnCavas";
 
@@ -89,6 +90,14 @@ export const FullSizeImagePreview = ({
     }
   }, [newSize, size, image, isVerticalSplit]);
 
+  const [isShowVerticalSplitLine, setIsShowVerticalSplitLine] = useState(true);
+
+  const handleToggleVerticalSplit: MouseEventHandler<HTMLButtonElement> = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsShowVerticalSplitLine(!isShowVerticalSplitLine);
+  };
+
   return (
     <Box
       sx={{
@@ -106,7 +115,17 @@ export const FullSizeImagePreview = ({
       onClick={() => onClose()}
     >
       <canvas ref={canvasRef1} style={styleProps} />
-      {isVerticalSplit && <canvas ref={canvasRef2} style={styleProps} />}
+      {isVerticalSplit && (
+        <canvas
+          ref={canvasRef2}
+          style={{ ...styleProps, borderLeft: isShowVerticalSplitLine ? "1px solid black" : "none" }}
+        />
+      )}
+      {isVerticalSplit && (
+        <SecondaryButton onClick={handleToggleVerticalSplit} sx={{ position: "absolute", top: 12, left: 12 }}>
+          Toggle vertical split line
+        </SecondaryButton>
+      )}
     </Box>
   );
 };
