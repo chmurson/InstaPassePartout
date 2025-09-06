@@ -6,6 +6,7 @@ import { type FC, type ImgHTMLAttributes, type SyntheticEvent, useEffect, useRef
 import { AreYouSureButton } from "../../common/are-you-sure-button.tsx";
 import { AlertButton, SecondaryButton, TertiaryButton } from "../../common/buttons.tsx";
 import { delay } from "../../common/delay.tsx";
+import type { TargetRatioMetadata } from "../createTragetRatioMetadata.ts";
 import { CanvasWithNewSizeThumbnail } from "./canvas-with-new-size-thumbnail.tsx";
 import { imageMaxHeight, imageMaxWidth } from "./consts.ts";
 import { FullSizeImagePreview } from "./full-size-image-preview.tsx";
@@ -27,18 +28,10 @@ type Props = {
   onRemove: () => void;
   onSplit: () => void;
   isSplit: boolean;
-  isCurrentRatioPortrait: boolean;
+  targetRatioMetadata: TargetRatioMetadata;
 };
 
-export const UploadedImage: FC<Props> = ({
-  src,
-  size,
-  newSize,
-  onRemove,
-  onSplit,
-  isSplit,
-  isCurrentRatioPortrait,
-}) => {
+export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove, onSplit, isSplit, targetRatioMetadata }) => {
   const loadedImageRef = useRef<HTMLImageElement>();
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
@@ -111,7 +104,6 @@ export const UploadedImage: FC<Props> = ({
   }, []);
 
   const photoIsLandscape = size.width > size.height;
-  const canToggleSplit = isCurrentRatioPortrait && photoIsLandscape;
 
   return (
     <UploadedImageLayout
@@ -180,8 +172,8 @@ export const UploadedImage: FC<Props> = ({
               </AlertButton>
             )}
           />
-          {isCurrentRatioPortrait && (
-            <Tooltip title={!canToggleSplit && "Only photos in landscape can be split vertically"}>
+          {targetRatioMetadata.isSplittableVertically && (
+            <Tooltip title={!photoIsLandscape && "Only photos in landscape can be split vertically"}>
               <FormControlLabel
                 control={<Switch checked={isSplit} onChange={() => onSplit()} />}
                 label={
@@ -189,7 +181,7 @@ export const UploadedImage: FC<Props> = ({
                     Vertical Split
                   </Typography>
                 }
-                disabled={!canToggleSplit}
+                disabled={!photoIsLandscape}
               />
             </Tooltip>
           )}

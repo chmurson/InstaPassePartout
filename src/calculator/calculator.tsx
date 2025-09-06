@@ -22,6 +22,7 @@ import { usePersistedState } from "../common/use-persisted-state.ts";
 import { useStorePersistedState } from "../common/use-store-persisted-state.ts";
 import type { Ratio } from "../main-types.ts";
 import { calcNewSize } from "./calc-new-size";
+import { createTargetRatioMetadata } from "./createTragetRatioMetadata.ts";
 import { CustomRationValue } from "./custom-ratio-value.tsx";
 import { DropZone } from "./drop-zone.tsx";
 import { UploadedImage } from "./uploaded-image";
@@ -148,7 +149,7 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
     });
   };
 
-  const isCurrentRatioPortrait = isRatioPortrait(ratio, customRatioValue);
+  const targetRatioMetadata = createTargetRatioMetadata(ratio, customRatioValue);
 
   return (
     <Stack spacing={4}>
@@ -206,10 +207,19 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
           </FormControl>
         </Stack>
       </Box>
-      {isCurrentRatioPortrait && (
+      {targetRatioMetadata.isSplittableVertically && (
         <Alert severity="info">
-          The current ratio is <strong>portrait</strong>, which allows landscape images to be{" "}
-          <strong>split vertically</strong>.
+          {targetRatioMetadata.isPortrait && (
+            <>
+              The current ratio is <strong>portrait</strong>
+            </>
+          )}
+          {targetRatioMetadata.isCloseToSquare && (
+            <>
+              The current ratio is <strong>square</strong>
+            </>
+          )}
+          , which allows landscape images to be <strong>split vertically</strong>.
         </Alert>
       )}
       <Box>
@@ -258,19 +268,10 @@ export const Calculator: FC<{ onBackToIntro: () => void }> = ({ onBackToIntro })
             onRemove={() => handleRemoveSingleFile(image)}
             isSplit={splitImages.includes(image.fileKey)}
             onSplit={() => handleSplitImage(image)}
-            isCurrentRatioPortrait={isCurrentRatioPortrait}
+            targetRatioMetadata={targetRatioMetadata}
           />
         ))}
       </Stack>
     </Stack>
   );
 };
-
-function isRatioPortrait(ratio: string, customRatioValue?: number): boolean {
-  if (ratio === "custom") {
-    return customRatioValue !== undefined && customRatioValue < 1;
-  }
-
-  const [width, height] = ratio.split("_").map(Number);
-  return width < height;
-}
