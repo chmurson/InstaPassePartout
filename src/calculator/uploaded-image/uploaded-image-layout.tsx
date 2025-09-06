@@ -69,11 +69,13 @@ export const UploadedImageLayout: FC<{
           flexDirection={isXs ? "row" : "column"}
           display="flex"
           spacing={isXs ? 0 : 1}
-          sx={{ maxWidth: isXs ? imageMaxWidth * 2.5 : `${180}px`, width: "100%" }}
-          justifyContent={isXs ? "space-between" : "flex-start"}
+          sx={{ maxWidth: isXs ? "100%" : `${180}px`, width: "100%" }}
+          justifyContent={isXs ? "space-start" : "flex-start"}
           alignItems={isXs ? "center" : "stretch"}
+          gap={1}
           paddingX={isXs ? 0 : 2}
           alignSelf="stretch"
+          flexWrap={isXs ? "wrap" : "nowrap"}
         >
           {(isHover || isXs) && buttons}
         </Stack>
