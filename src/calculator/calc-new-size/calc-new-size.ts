@@ -15,9 +15,9 @@ export function calcNewSize(
   margin: number,
 ) {
   const notSplitRatioValue = ratio === "custom" ? (customRatioValue ?? 1) : ratioToRatioValue[ratio];
-  const ratioValue = isSplit ? 1 / notSplitRatioValue : notSplitRatioValue;
-
-  if (width / height < ratioValue) {
+  const ratioValue = isSplit ? notSplitRatioValue * 2 : notSplitRatioValue;
+  const originalRatio = width / height;
+  if (originalRatio < ratioValue) {
     let newHeight = height * ((margin + 100) / 100);
     let newWidth = newHeight * ratioValue;
 
@@ -53,8 +53,8 @@ export function calcNewSize(
 function ensureExactAspectRatio(newWidth: number, newHeight: number, ratio: Ratio, isSplit: boolean) {
   if (ratio === "custom") return;
 
-  const heightMod = Number(ratio.split("_")[isSplit ? 0 : 1]);
-  const weightMod = Number(ratio.split("_")[isSplit ? 1 : 0]);
+  const heightMod = Number(ratio.split("_")[1]);
+  const weightMod = Number(ratio.split("_")[0]) * (isSplit ? 2 : 1);
 
   if (newWidth % weightMod !== 0 || newHeight % heightMod !== 0) {
     newWidth = (Math.floor(newWidth / weightMod) + 1) * weightMod;

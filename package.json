@@ -9,7 +9,8 @@
     "build": "tsc && vite build",
     "lint": "biome check --write",
     "lint-unsafe": "biome check --write --unsafe",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

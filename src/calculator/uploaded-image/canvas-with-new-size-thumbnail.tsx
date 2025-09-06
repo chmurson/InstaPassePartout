@@ -24,11 +24,11 @@ export const CanvasWithNewSizeThumbnail = ({
     }
 
     const maxDimensions = isVerticalSplit
-      ? { width: imageMaxHeight, height: imageMaxWidth }
+      ? { width: imageMaxWidth, height: imageMaxHeight }
       : { width: imageMaxWidth, height: imageMaxHeight };
 
     drawImageOnCanvas(image, size, canvasRef.current, maxDimensions, {
-      newSize,
+      newSize: newSize,
       type: "scale-to-canvas",
     });
   }, [isImageLoaded, newSize, size, image, isVerticalSplit]);

@@ -9,8 +9,14 @@ describe("calcNewSize", () => {
     describe(`Ratio is ${"9_16" as Ratio}`, () => {
       const ratio: Ratio = "9_16";
 
-      describe.each([{ input: [50, 75], expected: [55, 97] }])(`Input size $input`, ({ input, expected }) => {
-        it(`returns ${expected}`, () => {
+      describe.each([
+        { input: [50, 75], expected: [63, 112] },
+        {
+          input: [2000, 4000],
+          expected: [2475, 4400],
+        },
+      ])(`Input size $input`, ({ input, expected }) => {
+        it(`returns ${expected} which is exactly also ${ratio}`, () => {
           const result = calcNewSize({ height: input[1], width: input[0] }, { ratio }, margin);
           expect(result.width).toEqual(expected[0]);
           expect(result.height).toEqual(expected[1]);
@@ -25,8 +31,8 @@ describe("calcNewSize", () => {
       const ratio: Ratio = "4_5";
 
       describe.each([
-        // { input: [5152, 7728], expected: [6368, 7960] },
-        // { input: [4866, 7299], expected: [6016, 7520] },
+        { input: [5152, 7728], expected: [6368, 7960] },
+        { input: [4866, 7299], expected: [6016, 7520] },
         { input: [7728, 5152], expected: [7960, 9950] },
       ])(`Input size $input and ratio exactly 4/5; or 0.8`, ({ input, expected }) => {
         it(`returns ${expected}`, () => {
@@ -36,6 +42,21 @@ describe("calcNewSize", () => {
           expect(result.height).toEqual(expected[1]);
           expect(4 / 5).toEqual(expected[0] / expected[1]);
         });
+      });
+
+      describe("isSplit = true", () => {
+        describe.each([{ input: [4000, 5000], expected: [8240, 5150] }])(
+          `Input size $input and ratio exactyl 4/5; but isSplit=true`,
+          ({ input, expected }) => {
+            it(`returns ${expected}`, () => {
+              const result = calcNewSize({ height: input[1], width: input[0] }, { ratio, isSplit: true }, margin);
+
+              expect(result.width).toEqual(expected[0]);
+              expect(result.height).toEqual(expected[1]);
+              expect(8 / 5).toBeCloseTo(expected[0] / expected[1], 2);
+            });
+          },
+        );
       });
     });
   });

@@ -5,13 +5,12 @@ import { CircularProgress, FormControlLabel, Switch, Tooltip, Typography } from 
 import { type FC, type ImgHTMLAttributes, type SyntheticEvent, useEffect, useRef, useState } from "react";
 import { AreYouSureButton } from "../../common/are-you-sure-button.tsx";
 import { AlertButton, SecondaryButton, TertiaryButton } from "../../common/buttons.tsx";
-import { delay } from "../../common/delay.tsx";
+import type { TargetRatioMetadata } from "../createTragetRatioMetadata.ts";
 import { CanvasWithNewSizeThumbnail } from "./canvas-with-new-size-thumbnail.tsx";
 import { imageMaxHeight, imageMaxWidth } from "./consts.ts";
 import { FullSizeImagePreview } from "./full-size-image-preview.tsx";
 import { UploadedImageLayout } from "./uploaded-image-layout.tsx";
-import { drawImageOnCanvas } from "./utils/drawImageOnCanvas.ts";
-import { drawSplitImageOnCanvas } from "./utils/drawSplitImageOnCavas.ts";
+import { useDownloadImage } from "./use-download-image.ts";
 
 type Props = {
   src: string;
@@ -27,68 +26,23 @@ type Props = {
   onRemove: () => void;
   onSplit: () => void;
   isSplit: boolean;
-  isCurrentRatioPortrait: boolean;
+  targetRatioMetadata: TargetRatioMetadata;
 };
 
-export const UploadedImage: FC<Props> = ({
-  src,
-  size,
-  newSize,
-  onRemove,
-  onSplit,
-  isSplit,
-  isCurrentRatioPortrait,
-}) => {
+export const UploadedImage: FC<Props> = ({ src, size, newSize, onRemove, onSplit, isSplit, targetRatioMetadata }) => {
   const loadedImageRef = useRef<HTMLImageElement>();
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+  const { downloading, handleDownload } = useDownloadImage({
+    isSplit,
+    loadedImageRef,
+    newSize,
+    originalSize: size,
+  });
 
   function handleOnLoad(e: SyntheticEvent<HTMLImageElement>) {
     loadedImageRef.current = e.currentTarget;
     setIsImageLoaded(true);
-  }
-
-  const [downloading, setDownloading] = useState(false);
-
-  function handleDownload() {
-    if (downloading) {
-      return;
-    }
-
-    setDownloading(true);
-
-    setTimeout(async () => {
-      if (!loadedImageRef.current) {
-        return;
-      }
-
-      const canvases = [document.createElement("canvas")];
-      if (isSplit) {
-        canvases.push(document.createElement("canvas"));
-      }
-
-      if (!isSplit) {
-        drawImageOnCanvas(loadedImageRef.current, size, canvases[0], newSize, { newSize, type: "scale-to-image" });
-        downloadCanvasImage(canvases[0]);
-      } else {
-        drawSplitImageOnCanvas(loadedImageRef.current, size, canvases[0], newSize, {
-          newSize,
-          type: "scale-to-image",
-          splitPart: "left",
-        });
-        downloadCanvasImage(canvases[0]);
-
-        await delay(125);
-
-        drawSplitImageOnCanvas(loadedImageRef.current, size, canvases[1], newSize, {
-          newSize,
-          type: "scale-to-image",
-          splitPart: "right",
-        });
-        downloadCanvasImage(canvases[1]);
-      }
-
-      setDownloading(false);
-    }, 125);
   }
 
   const [isPreview, setIsPreview] = useState(false);
@@ -111,7 +65,6 @@ export const UploadedImage: FC<Props> = ({
   }, []);
 
   const photoIsLandscape = size.width > size.height;
-  const canToggleSplit = isCurrentRatioPortrait && photoIsLandscape;
 
   return (
     <UploadedImageLayout
@@ -180,8 +133,8 @@ export const UploadedImage: FC<Props> = ({
               </AlertButton>
             )}
           />
-          {isCurrentRatioPortrait && (
-            <Tooltip title={!canToggleSplit && "Only photos in landscape can be split vertically"}>
+          {targetRatioMetadata.isSplittableVertically && (
+            <Tooltip title={!photoIsLandscape && "Only photos in landscape can be split vertically"} placement="left">
               <FormControlLabel
                 control={<Switch checked={isSplit} onChange={() => onSplit()} />}
                 label={
@@ -189,7 +142,7 @@ export const UploadedImage: FC<Props> = ({
                     Vertical Split
                   </Typography>
                 }
-                disabled={!canToggleSplit}
+                disabled={!photoIsLandscape}
               />
             </Tooltip>
           )}
@@ -276,11 +229,4 @@ function calculateAspectRatio(width: number, height: number): { ratioText: strin
     ratioText: `${ratioWidth}:${ratioHeight}`,
     isNice: ratioHeight < 20 && ratioWidth < 20,
   };
-}
-
-function downloadCanvasImage(image: HTMLCanvasElement, name?: string) {
-  const downloadLink = document.createElement("a");
-  downloadLink.href = image.toDataURL("image/png");
-  downloadLink.download = name ?? "image_with_margins.png";
-  downloadLink.click();
 }
